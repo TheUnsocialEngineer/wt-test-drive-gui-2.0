@@ -1,0 +1,90 @@
+{
+  "name": "warthunder-testdrive-gui",
+  "productName": "warthunder-testdrive-gui",
+  "version": "1.0.0",
+  "description": "Test Drive Vehicles",
+  "main": ".webpack/main",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-react": "^7.25.9",
+    "@electron-forge/cli": "^7.5.0",
+    "@electron-forge/maker-deb": "^7.5.0",
+    "@electron-forge/maker-rpm": "^7.5.0",
+    "@electron-forge/maker-squirrel": "^7.5.0",
+    "@electron-forge/maker-zip": "^7.5.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
+    "@electron-forge/plugin-fuses": "^7.5.0",
+    "@electron-forge/plugin-webpack": "^7.5.0",
+    "@electron/fuses": "^1.8.0",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+    "autoprefixer": "^10.4.20",
+    "babel-loader": "^9.2.1",
+    "css-loader": "^6.11.0",
+    "electron": "33.2.0",
+    "electron-builder": "^25.1.8",
+    "node-loader": "^2.0.0",
+    "postcss-loader": "^8.1.1",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.5",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "react-scripts": "5.0.1",
+    "react-simple-maps": "^3.0.0",
+    "sass": "^1.80.6",
+    "sass-loader": "^16.0.3",
+    "style-loader": "^3.3.4",
+    "web-vitals": "^2.1.4"
+  },
+  "keywords": [],
+  "author": "Eoka",
+  "license": "MIT",
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
+    "electron-squirrel-startup": "^1.0.1",
+    "node-fetch": "^3.3.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "build": {
+    "appId": "Eoka.Troll.Toolkit",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "./images/image.icns"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "./images/image.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "./images/image.png"
+    },
+    "files": [
+      "dist/**/*",
+      "src/**/*",
+      "package.json",
+      "node_modules/**/*",
+      "Public/**/*",
+      "images/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "data",
+        "to": "data"
+      }
+    ]
+  }
+}
