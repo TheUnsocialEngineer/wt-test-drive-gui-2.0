@@ -25,7 +25,7 @@ I would suggest you watch [Ask3lad's video](https://www.youtube.com/watch?v=VbFS
 ---
 # Running binary
 
-1. Run `warthunder-testdrive-gui.exe`
+1. Run `warthunder-testdrive-gui-1.0.0 Setup.exe` from the releases tab.
 
 
 On first startup the program checks if you have Wt installed with WT launcher if not it will prompt you for your warthunder install directory e.g. **C:\Users\{username}\AppData\Local\WarThunder** or the steam install directory e.g. **A:\Steam\steamapps\common\War Thunder**, this works on windows, linux and mac
