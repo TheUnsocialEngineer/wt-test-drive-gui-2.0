@@ -416,8 +416,8 @@ ipcMain.handle("update_mission_file", async (event, mission, selectedVehicleId, 
 
     // Update the weapons field
     const updatedLines = lines.map((line) =>
-      line.includes(`weapons:t="${lastSelected.replace('"',"").replace('\\',"")}"`)
-        ? line.replace(`weapons:t="${lastSelected.replace('"',"").replace('\\',"")}"`, `weapons:t="${selectedVehicleId.replace('"',"").replace('\\',"")}"`)
+      line.includes(`weapons:t=`)
+        ? `    weapons:t="${selectedVehicleId.replace('"', "").replace('\\', "")}"`
         : line
     );
 
