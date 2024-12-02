@@ -3,13 +3,7 @@
 
 AGui for test driving any WarThunder vehicle based on [This video](https://www.youtube.com/watch?v=VbFSo0YqJE0)
 
-
-
-
-# WT TEST DRIVER
-
-AGui for test driving any WarThunder vehicle based on [This video](https://www.youtube.com/watch?v=VbFSo0YqJE0&t=126s)
-
+# WARNING RIGHT NOW I HAVE MESSED UP THE STEAM PATH CHECKS THIS MEANS YOU WILL NEED TO MANUALLY SET GAME TYPE TO STEAM AND SET "steam_install_path": "" TO YOUR INSTALL LOCATION
 
 ## Usage/Examples
 
