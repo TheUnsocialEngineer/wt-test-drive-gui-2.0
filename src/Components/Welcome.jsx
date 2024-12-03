@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css"; // Assuming you have a custom CSS file for full-frame styling.
+//import MissionEditModal from "./MissionEdit.jsx"
 
 const countryNames = [
   "USA",
@@ -25,6 +26,44 @@ function Welcome() {
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control the modal visibility
   const [selectedVehicle, setSelectedVehicle] = useState(null); // State to store selected vehicle data
   const [showStartPrompt, setShowStartPrompt] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [enemies, setEnemies] = useState([]);
+  const [missionDetails, setMissionDetails] = useState(null); // Store mission details
+
+  const saveMissionChanges = async (updatedMissionDetails) => {
+    setMissionDetails(updatedMissionDetails); // Update state with new details
+  
+    try {
+      const response = await window.electron.save_mission_details(updatedMissionDetails);
+      if (response.success) {
+        //console.log("Mission details saved successfully");
+      } else {
+        //console.error("Failed to save mission details:", response.message);
+      }
+    } catch (error) {
+      //console.error("Error saving mission details:", error);
+    }
+  };
+
+
+  const fetchEnemies = async (selectedMission) => {
+    try {
+      const tankModels = await window.electron.fetchEnemies(selectedMission)
+      console.log("Tank Models:", tankModels);
+      setEnemies(tankModels)
+    } catch (error) {
+      console.error("Error fetching tank models:", error.message);
+    }
+  };
+
+  const openEditModal = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+  };
+
 
   // Function to fetch vehicles when the active country changes
   const fetchVehicles = async (country) => {
@@ -54,6 +93,11 @@ function Welcome() {
     fetchVehicles(activeCountry);
   }, [activeCountry]);
 
+  // Fetch enemies when the component mounts or activeCountry changes
+  useEffect(() => {
+    fetchEnemies(selectedMission);
+  }, [selectedMission]);
+
   // Fetch missions on component mount
   useEffect(() => {
     fetchMissions();
@@ -81,6 +125,18 @@ function Welcome() {
           setSelectedVehicle(playerVehicle);
           //console.log(playerVehicle)
           setSelectedVehicleWeapons(playerVehicle.weapons);
+
+          //set mission details state
+
+          setMissionDetails({
+            name: JSON.parse(missionData.missionData.mission.locName),
+            type: JSON.parse(missionData.missionData.mission.type),
+            level: JSON.parse(missionData.missionData.mission.level),
+            environment: JSON.parse(missionData.missionData.mission.environment),
+            weather: JSON.parse(missionData.missionData.mission.weather),
+            description: JSON.parse(missionData.missionData.mission.locDesc),
+            campaign: JSON.parse(missionData.missionData.mission.campaign),
+          });
   
           // Update the `last_selected` in config.json
           const response = await window.electron.updateLastSelected(playerVehicle.weapons);
@@ -129,6 +185,16 @@ function Welcome() {
   // Handle modal close
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  // Handle modal open
+  const openeditModal = () => {
+    setIsEditModalOpen(true);
+  };
+
+  // Handle modal close
+  const closeeditModal = () => {
+    setIsEditModalOpen(false);
   };
 
   const handleVehicleSelect = async (vehicle, mission) => {
@@ -186,158 +252,207 @@ function Welcome() {
 };
 
 
-  return (
-    <div className="app-container d-flex flex-column min-vh-100">
-      {/* Title Bar */}
-      <header className="bg-dark text-white text-center py-3 header">
-        <h1 className="display-6">War Thunder Test Driver</h1>
-      </header>
-      {/* Mission Selector Section */}
-      <div className=" py-2 border-bottom">
-          <div className="dropdown me-3" >
-            <select
-              className="form-select"
-              value={selectedMission}
-              onChange={handleMissionChange}
-            >
-              <option value="" disabled>
-                Select Mission
-              </option>
-              {missions.map((mission, index) => (
-                <option key={index} value={mission.missionData.mission.locName}>
-                  {mission.missionData.mission.locName}
-                </option>
-              ))}
-            </select>
+return (
+  <div className="app-container d-flex flex-column min-vh-100">
+    
+    {/* Title Bar */}
+    <header className="bg-dark text-white text-center py-3 header">
+      <h1 className="display-6">War Thunder Test Driver</h1>
+    </header>
+
+    {/* Mission Selector Section */}
+    <div className="py-2 border-bottom">
+      <div className="dropdown me-3">
+        <select
+          className="form-select"
+          value={selectedMission}
+          onChange={handleMissionChange}
+        >
+          <option value="" disabled>
+            Select Mission
+          </option>
+          {missions.map((mission, index) => (
+            <option key={index} value={mission.missionData.mission.locName}>
+              {mission.missionData.mission.locName}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+    {/* Mission Details Section */}
+    <div className="container my-4 mission-info">
+      {selectedMissionData && (
+        <>
+          <div className="text-white mb-4">
+            <h1>Mission Manager</h1>
+            <h5>Mission: {JSON.parse(selectedMissionData.missionData.mission.locName)}</h5>
           </div>
-      </div>
-
-      {/* Mission Details Section (Always visible) */}
-      <div className="container my-4 mission-info">
-        {selectedMissionData && (
-          <>
-            <h5 className="text-white mb-4">Mission: {selectedMissionData.missionData.mission.locName}</h5>
-            <div className="row g-3">
-              <div className="col-md-4">
-                <div className="card bg-dark text-white">
-                  <div className="card-body">
-                    <h6>Mission Type:</h6>
-                    <p>{JSON.parse(selectedMissionData.missionData.mission.type)}</p>
-                    <h6>Level:</h6>
-                    <p>{JSON.parse(selectedMissionData.missionData.mission.level)}</p>
-                  </div>
+          <div className="row g-4">
+            {/* Mission Details Cards */}
+            <div className="col-md-6">
+              <div className="card bg-dark text-white h-100">
+                <div className="card-body">
+                  <h6 className="card-title"></h6>
+                  <p><strong>Type:</strong> {JSON.parse(selectedMissionData.missionData.mission.type)}</p>
+                  <p><strong>Level:</strong> {JSON.parse(selectedMissionData.missionData.mission.level)}</p>
+                  <p><strong>Environment:</strong> {JSON.parse(selectedMissionData.missionData.mission.environment)}</p>
+                  <p><strong>Weather:</strong> {JSON.parse(selectedMissionData.missionData.mission.weather)}</p>
+                  <p><strong>Description:</strong> {JSON.parse(selectedMissionData.missionData.mission.locDesc)}</p>
+                  <p><strong>Campaign:</strong> {JSON.parse(selectedMissionData.missionData.mission.campaign)}</p>
                 </div>
-              </div>
-              <div className="col-md-4">
-                <div className="card bg-dark text-white">
-                  <div className="card-body">
-                    <h6>Environment:</h6>
-                    <p>{JSON.parse(selectedMissionData.missionData.mission.environment)}</p>
-                    <h6>Weather:</h6>
-                    <p>{JSON.parse(selectedMissionData.missionData.mission.weather)}</p>
+                <div className="card-footer">
+                <div className="text-center">
+                  {/* <button className="btn btn-outline-secondary btn-lg px-4" onClick={openEditModal}>  Edit Mission</button>*/}
                   </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="card bg-dark text-white">
-                  <div className="card-body">
-                    <h6>Location Description:</h6>
-                    <p>{JSON.parse(selectedMissionData.missionData.mission.locDesc)}</p>
-                    <h6>Campaign:</h6>
-                    <p>{JSON.parse(selectedMissionData.missionData.mission.campaign)}</p>
                   </div>
-                </div>
               </div>
             </div>
-            <div className="col-md-4">
-                <div className="card bg-dark text-white">
+            <div className="col-md-6">
+              {selectedVehicle && (
+                <div className="card bg-dark text-white h-100">
                   <div className="card-body">
-                    {/* Selected Vehicle Section */}
-                    {selectedVehicle && (
-                      <div className="my-4">
-                        <h5>Selected Vehicle (You): {selectedMissionData.missionData.mission.locName}</h5>
-                        <p><strong>Weapons:</strong> {selectedVehicleWeapons}</p>
-                        <button className="btn btn-secondary" onClick={openModal}>Edit</button>
-                      </div>
-                    )}
+                    <h5>Selected Vehicle (You):</h5>
+                    <p><strong>Name:</strong> {selectedVehicle.vehicle}</p>
+                    <p><strong>Weapons:</strong> {selectedVehicleWeapons}</p>
+                     <div className="tank-image">
+                        {/* <img src="https://static.encyclopedia.warthunder.com/images/germ_pzkpfw_35t.png" alt="test"/> */}
+                     </div>
+                    <div className="text-center">
+                      <button
+                        className="btn btn-outline-secondary btn-lg px-4"
+                        onClick={openModal}
+                      >
+                        Edit Vehicle
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-          </>
-        )}
-      </div>
-
-      {/* Main Content Section */}
-      <main className="flex-grow-1 main">
-        {/* Start Screen Overlay */}
-          {showStartPrompt && (
-            <div className="start-screen d-flex justify-content-center align-items-center">
-              <h1 className="display-1 text-white">SELECT A MISSION TO BEGIN</h1>
+              )}
             </div>
-          )}
-      </main>
-          {/* Footer */}
-          <footer className="bg-dark text-white text-center py-3">
-            <p className="mb-0">&copy; 2024 War Thunder Test Driver. All rights reserved.</p>
-          </footer>
-      {/* Modal for Vehicle Selector */}
-      {isModalOpen && (
-        <div className="modal fade show" style={{ display: "block" }} aria-hidden="false">
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Select Vehicle</h5>
-                <button type="button" className="btn-close" onClick={closeModal}>X</button>
+          </div>
+          <div className="container" style={{padding:50}}>
+            <div className="card bg-dark text-white h-100">
+              <div className="text-white mb-4">
+                <h1 style={{padding:10}}>Enemies</h1>
               </div>
-
-              {/* Tabs Section for Country Selector */}
-              <div className="modal-body">
-                <div className="bg-light border-bottom mb-4">
-                  <div className="container py-2">
-                    <ul className="nav nav-tabs justify-content-center">
-                      {countryNames.map((country) => (
-                        <li className="nav-item" key={country}>
-                          <button
-                            className={`nav-link ${activeCountry === country ? "active" : ""}`}
-                            onClick={() => setActiveCountry(country)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            {country}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                {/* Vehicle Buttons Grid */}
-                <div className="row row-cols-1 row-cols-md-3 g-4">
-                  {vehicles.length > 0 ? (
-                    vehicles.map((vehicle, index) => (
-                      <div className="col" key={index}>
-                        <button
-                          className="btn btn-primary w-100"
-                          style={{
-                            fontSize: "0.8rem",
-                            padding: "20px",
-                            textAlign: "center",
-                          }}
-                          onClick={() => handleVehicleSelect(vehicle,selectedMission)}
-                        >
-                          {vehicle.vehicle}
-                        </button>
+              <div className="card-body enemy-display">
+                {/* Display enemies */}
+                <div className="row mt-4">
+                  {enemies.length > 0 ? (
+                    enemies
+                      .filter((enemy) => JSON.parse(enemy.name) !== 'You')
+                      .map((enemy, index) => (
+                      <div className="col-sm-12 col-md-6 col-lg-4 mb-3" key={index}>
+                        {/* Card for each enemy */}
+                        <div className="card">
+                          <div className="card-body">
+                            <h5 className="card-title">{JSON.parse(enemy.name)}</h5>
+                            <p className="card-text">
+                              <strong>Class:</strong> {JSON.parse(enemy.unit_class)}
+                            </p>
+                            <p className="card-text">
+                              <strong>Weapons:</strong> {JSON.parse(enemy.weapons)}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-center w-100">No vehicles available for this country.</p>
+                    <p>No enemies to display for this mission.</p>
                   )}
                 </div>
               </div>
             </div>
           </div>
+
+          <div className="container">
+
+          <MissionEditModal
+            show={isEditModalOpen}
+            onClose={closeEditModal}
+            missionDetails={missionDetails}
+            onSave={saveMissionChanges}
+            //handleInputChange={handleInputChange}
+          />
         </div>
+        </>
       )}
     </div>
-  );
+
+    {/* Main Content Section */}
+    <main className="flex-grow-1 main">
+      {showStartPrompt && (
+        <div className="start-screen d-flex justify-content-center align-items-center">
+          <h1 className="display-1 text-white">SELECT A MISSION TO BEGIN</h1>
+        </div>
+      )}
+    </main>
+
+    {/* Footer */}
+    <footer className="bg-dark text-white text-center py-3">
+      <p className="mb-0">&copy; 2024 War Thunder Test Driver. All rights reserved.</p>
+    </footer>
+
+    {/* Modal for Vehicle Selector */}
+    {isModalOpen && (
+      <div className="modal fade show" style={{ display: "block" }} aria-hidden="false">
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Select Vehicle</h5>
+              <button type="button" className="btn-close" onClick={closeModal}>
+                X
+              </button>
+            </div>
+
+            {/* Tabs Section for Country Selector */}
+            <div className="modal-body">
+              <div className="bg-light border-bottom mb-4">
+                <div className="container py-2">
+                  <ul className="nav nav-tabs justify-content-center">
+                    {countryNames.map((country) => (
+                      <li className="nav-item" key={country}>
+                        <button
+                          className={`nav-link ${activeCountry === country ? "active" : ""}`}
+                          onClick={() => setActiveCountry(country)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          {country}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              {/* Vehicle Buttons Grid */}
+              <div className="row row-cols-1 row-cols-md-3 g-4">
+                {vehicles.length > 0 ? (
+                  vehicles.map((vehicle, index) => (
+                    <div className="col" key={index}>
+                      <button
+                        className="btn btn-primary w-100"
+                        style={{
+                          fontSize: "0.8rem",
+                          padding: "20px",
+                          textAlign: "center",
+                        }}
+                        onClick={() => handleVehicleSelect(vehicle, selectedMission)}
+                      >
+                        {vehicle.vehicle}
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center w-100">No vehicles available for this country.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 }
 
 export default Welcome;

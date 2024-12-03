@@ -16,6 +16,7 @@ if (require('electron-squirrel-startup')) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
+    sandbox: false, // Disable sandbox
     width: 1920,
     height: 1080,
     webPreferences: {
@@ -46,11 +47,11 @@ const get_game_install_path = () => {
     } else if (config.game_type === 'steam') {
       return config.steam_install_path; // Return Steam install path
     } else {
-      //myConsole.error('Unknown game type:', config.game_type);
+      ////myConsole.error('Unknown game type:', config.game_type);
       return null;
     }
   } catch (err) {
-    //myConsole.error('Error reading config file:', err);
+    ////myConsole.error('Error reading config file:', err);
     return null;
   }
 };
@@ -73,9 +74,9 @@ const set_config = () => {
 
   try {
     fs.writeFileSync(appDataPath, JSON.stringify(defaultConfig, null, 2), 'utf-8');
-    //myConsole.log('Config file created with new layout.');
+    ////myConsole.log('Config file created with new layout.');
   } catch (err) {
-    //myConsole.error('Error creating config file:', err);
+    ////myConsole.error('Error creating config file:', err);
   }
 };
 
@@ -86,37 +87,37 @@ const check_warthunder_install_path = () => {
   let wtPath;
 
   // Log the OS and username for debugging
-  //myConsole.log('Current OS:', platform);
-  //myConsole.log('Current username:', username);
+  ////myConsole.log('Current OS:', platform);
+  ////myConsole.log('Current username:', username);
 
   if (platform === 'win32') {
     // Windows-specific War Thunder path
     wtPath = path.join('C:', 'Users', username, 'AppData', 'Local', 'WarThunder');
-    //myConsole.log('Checking WarThunder path (Windows):', wtPath);
+    ////myConsole.log('Checking WarThunder path (Windows):', wtPath);
   } else if (platform === 'darwin') {
     // macOS-specific War Thunder path
     wtPath = '/Applications/WarThunderLauncher.app/Contents/WarThunder.app/Contents/Resources/game';
-    //myConsole.log('Checking WarThunder path (macOS):', wtPath);
+    ////myConsole.log('Checking WarThunder path (macOS):', wtPath);
   } else if (platform === 'linux') {
     // Unix/Linux-specific War Thunder path (if applicable)
     wtPath = '/usr/share/games/warThunder';
-    //myConsole.log('Checking WarThunder path (Unix/Linux):', wtPath);
+    ////myConsole.log('Checking WarThunder path (Unix/Linux):', wtPath);
   } else {
-    //myConsole.log('Unsupported operating system. Skipping WarThunder path check.');
+    ////myConsole.log('Unsupported operating system. Skipping WarThunder path check.');
     return { success: false, path: null };
   }
 
   // Check if the directory exists
   try {
     if (fs.existsSync(wtPath)) {
-      //myConsole.log('WarThunder path exists!');
+      ////myConsole.log('WarThunder path exists!');
       return { success: true, path: wtPath }; // Return success and path if it exists
     } else {
-      //myConsole.log('WarThunder path does not exist.');
+      ////myConsole.log('WarThunder path does not exist.');
       return { success: false, path: null }; // Return false and null if not found
     }
   } catch (err) {
-    //myConsole.error('Error checking WarThunder path:', err);
+    ////myConsole.error('Error checking WarThunder path:', err);
     return { success: false, path: null };
   }
 };
@@ -182,27 +183,27 @@ const update_user_missions_in_config = async (blkFiles) => {
             tankModels: parsedOutput.tankModels || [],  // Assuming parseFile outputs tankModels
           });
 
-          ////myConsole.log(`Parsed and added mission: ${blkFile}`);
+          //////myConsole.log(`Parsed and added mission: ${blkFile}`);
         } else {
-          ////myConsole.log(`Mission already exists, skipping: ${blkFile}`);
+          //////myConsole.log(`Mission already exists, skipping: ${blkFile}`);
         }
       } catch (err) {
-        //myConsole.error(`Error parsing .blk file: ${blkFile}`, err);
+        ////myConsole.error(`Error parsing .blk file: ${blkFile}`, err);
       }
     }
 
     // Write the updated config back to the file
     fs.writeFileSync(appDataPath, JSON.stringify(config, null, 2), 'utf-8');
-    ////myConsole.log('Config updated with parsed missions.');
+    //////myConsole.log('Config updated with parsed missions.');
   } catch (err) {
-    //myConsole.error('Error updating config file:', err);
+    ////myConsole.error('Error updating config file:', err);
   }
 };
 
 
 // Main startup function
 const startup = () => {
-  const appDataPath = path.join(app.getPath('userData'), 'config.json');
+  const configFilePath = path.join(app.getPath('userData'), 'config.json');
   const vehcilespath = path.join(app.getPath('userData'), 'vehicles.json');
   const parsepypath = path.join(app.getPath('userData'), 'parse.py');
   downloadFile("https://raw.githubusercontent.com/TheUnsocialEngineer/WT-TEST-DRIVE-ASSETS/refs/heads/main/vehicles.json",vehcilespath)
@@ -212,37 +213,81 @@ const startup = () => {
     //myConsole.log('Config file exists.');
 
     try {
-      const configData = fs.readFileSync(appDataPath, 'utf-8');
+      const configData = fs.readFileSync(configFilePath, 'utf-8');
       const config = JSON.parse(configData);
 
       // Step 2: Check has_run in the config
       if (!config.has_run) {
-        ////myConsole.log('has_run is false. Updating to true...');
-
-        // Step 3: Check if War Thunder path exists and get the path
+        //myConsole.log('has_run is false. Updating to true...');
+        config.has_run=true
+        //Step 3: Check if War Thunder path exists and get the path
         const { success, path: warthunderPath } = check_warthunder_install_path();
 
         if (success && warthunderPath) {
-          ////myConsole.log('War Thunder installation found at:', warthunderPath);
-
+          //myConsole.log('War Thunder installation found at:', warthunderPath);
+        
           // Update the game_type and warthunder_install_path in the config
-          config.game_type = 'warthunder';
+          config.game_type = "warthunder";
           config.warthunder_install_path = warthunderPath;
-          const  vehicleblkpath= path.join(warthunderPath,'content','pkg_local','gameData','units','tankmodels','userVehicles','us_m2a4.blk');
-          config.vehicleblkpath=vehicleblkpath;
+        
+          // Construct the vehicle BLK path
+          const vehicleblkpath = path.join(
+            warthunderPath,
+            "content",
+            "pkg_local",
+            "gameData",
+            "units",
+            "tankmodels",
+            "userVehicles",
+            "us_m2a4.blk"
+          );
+          config.vehicleblkpath = vehicleblkpath;
         } else {
           //myConsole.log('War Thunder installation not found.');
+        
+          // Show a folder select dialog to the user
+          const selectedPaths = dialog.showOpenDialogSync({
+            title: "Select War Thunder Installation Folder",
+            properties: ["openDirectory"],
+          });
+        
+          if (selectedPaths && selectedPaths.length > 0) {
+            const selectedPath = selectedPaths[0];
+        
+            // Update the game_type and warthunder_install_path in the config
+            config.game_type = "steam";
+            config.steam_install_path = selectedPath;
+        
+            // Construct the vehicle BLK path
+            const vehicleblkpath = path.join(
+              selectedPath,
+              "content",
+              "pkg_local",
+              "gameData",
+              "units",
+              "tankmodels",
+              "userVehicles",
+              "us_m2a4.blk"
+            );
+            config.vehicleblkpath = vehicleblkpath;
+        
+            // Optionally, save the updated config
+            fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2));
+          } else {
+            // Log an error or notify the user that the selection was canceled
+            //myConsole.error("No folder selected. War Thunder path not configured.");
+          }
         }
 
         // Update has_run to true
         config.has_run = true;
-        fs.writeFileSync(appDataPath, JSON.stringify(config, null, 2), 'utf-8');
+        fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf-8');
       }
       // Step 4: Fetch and update missions (regardless of has_run value)
-      //myConsole.log('Fetching and updating missions...');
+      ////myConsole.log('Fetching and updating missions...');
       const installPath = get_game_install_path();
       if (installPath) {
-        //myConsole.log('Game install path:', installPath);
+        ////myConsole.log('Game install path:', installPath);
         const blkFiles = findFilesByType(path.join(installPath, 'usermissions'), '.blk');
         if (blkFiles.length > 0) {
           update_user_missions_in_config(blkFiles); // Update config with blk file paths
@@ -262,13 +307,10 @@ const startup = () => {
   }
 };
 
-// Call the startup function
-startup();
-
 // Handler for fetching vehicles
 ipcMain.handle('fetch_vehicles', async () => {
   const appDataPath = path.join(app.getPath('userData'), 'vehicles.json');
-  ////myConsole.log('Fetching vehicles from:', appDataPath); // Log the path for debugging
+  //////myConsole.log('Fetching vehicles from:', appDataPath); // Log the path for debugging
 
   try {
     // Read the vehicles.json file from the appData path
@@ -276,10 +318,10 @@ ipcMain.handle('fetch_vehicles', async () => {
     
     // Parse the JSON data and return it
     const vehicles = JSON.parse(vehiclesData);
-    ////myConsole.log('Fetched vehicles data:'); // Log the data for debugging
+    //////myConsole.log('Fetched vehicles data:'); // Log the data for debugging
     return vehicles;
   } catch (err) {
-    //myConsole.error('Error reading vehicles.json:', err);
+    ////myConsole.error('Error reading vehicles.json:', err);
     throw new Error(err);
   }
 });
@@ -287,7 +329,7 @@ ipcMain.handle('fetch_vehicles', async () => {
 // Handler to fetch user missions from config.json
 ipcMain.handle('fetch_user_missions', async () => {
   const configPath = path.join(app.getPath('userData'), 'config.json');
-  ////myConsole.log('Fetching user missions from:', configPath);
+  //////myConsole.log('Fetching user missions from:', configPath);
 
   try {
     // Read the config.json file
@@ -304,37 +346,37 @@ ipcMain.handle('fetch_user_missions', async () => {
         tankModels: mission.tankModels
       }));
 
-      ////myConsole.log('User missions fetched successfully:', missions);
+      //////myConsole.log('User missions fetched successfully:', missions);
       return missions;
     } else {
-      //myConsole.warn('No missions found in config.json');
+      ////myConsole.warn('No missions found in config.json');
       return [];
     }
   } catch (err) {
-    //myConsole.error('Error reading user missions:', err);
+    ////myConsole.error('Error reading user missions:', err);
     throw new Error('Failed to fetch user missions');
   }
 });
 
 ipcMain.handle("update_vehicle", async (event, vehicle, mission) => {
-  ////myConsole.log("vehicle updater started");
-  ////myConsole.log("vehicle:", vehicle); // Log the entire vehicle object
-  ////myConsole.log("mission:", mission); // Log the mission name
+  //////myConsole.log("vehicle updater started");
+  //////myConsole.log("vehicle:", vehicle); // Log the entire vehicle object
+  //////myConsole.log("mission:", mission); // Log the mission name
 
   try {
     // Read and parse the config.json file
     const configFilePath = path.join(app.getPath('userData'), 'config.json');
     const config = JSON.parse(fs.readFileSync(configFilePath, "utf-8"));
-    ////myConsole.log("config: ", config);
+    //////myConsole.log("config: ", config);
 
     // Find the mission with the matching locName
     const missionData = config.missions.find((m) => m.missionData.mission.locName === mission);
-    ////myConsole.log("mission data: ", missionData);
+    //////myConsole.log("mission data: ", missionData);
 
     if (missionData) {
       // Mission found, now find the corresponding tank model by name
       const tankModel = missionData.tankModels.find((tank) => tank.name === `"You"`);
-      ////myConsole.log("tankModel: ", tankModel);
+      //////myConsole.log("tankModel: ", tankModel);
 
       if (tankModel) {
         // Update the weapons value of the tank model with the ammo_type name
@@ -351,7 +393,7 @@ ipcMain.handle("update_vehicle", async (event, vehicle, mission) => {
       return { success: false, message: "Mission not found" };
     }
   } catch (error) {
-    ////myConsole.error("Error updating vehicle:", error);
+    //////myConsole.error("Error updating vehicle:", error);
     return { success: false, message: "Failed to update vehicle", error };
   }
 });
@@ -384,19 +426,19 @@ ipcMain.handle("update_vehicle_blk_path", async (event, selectedVehicleId) => {
     // Write the updated content back to the file
     fs.writeFileSync(userVehiclePath, updatedData.join("\n"), "utf-8");
 
-    //myConsole.log(`Updated user vehicle file: ${userVehiclePath}`);
+    ////myConsole.log(`Updated user vehicle file: ${userVehiclePath}`);
 
     // Return success response
     return { success: true, message: "Vehicle .blk path updated successfully" };
   } catch (error) {
-    //myConsole.error("Error updating user vehicle file:", error);
+    ////myConsole.error("Error updating user vehicle file:", error);
     return { success: false, message: "Failed to update vehicle .blk path", error: error.message };
   }
 });
 
 ipcMain.handle("update_mission_file", async (event, mission, selectedVehicleId, lastSelected) => {
-  //myConsole.log(lastSelected.replace('"',""))
-  //myConsole.log(selectedVehicleId.replace('"',""))
+  ////myConsole.log(lastSelected.replace('"',""))
+  ////myConsole.log(selectedVehicleId.replace('"',""))
   try {
     // Fetch config file path
     const configFilePath = path.join(app.getPath("userData"), "config.json");
@@ -432,10 +474,39 @@ ipcMain.handle("update_mission_file", async (event, mission, selectedVehicleId, 
   }
 });
 
+ipcMain.handle("fetch_enemies", async (event, mission) => {
+  //myConsole.log(selectedMission)
+  try {
+    // Resolve the path to config.json
+    const configFilePath = path.join(app.getPath("userData"), "config.json");
+    const config = JSON.parse(fs.readFileSync(configFilePath, "utf-8"));
+    //myConsole.log(configData);
+    // Find the mission where locName matches the selectedMission
+    const missionData = config.missions.find((m) => m.missionData.mission.locName === mission);
+    //myConsole.log(mission);
+    if (!missionData) {
+      return { success: false, message: "Mission not found in config" };
+    }
+
+    // Fetch the tankmodels array
+    const tankModels = missionData.tankModels;
+    //myConsole.log("tankmodels", tankModels)
+
+    // Return the tankModels array
+    //myConsole.log(tankModels)
+    return tankModels;
+  } catch (error) {
+    console.error("Error fetching enemies:", error.message);
+    throw new Error("Failed to fetch enemies. Please check the logs.");
+  }
+});
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Call the startup function
+  startup();
   createWindow();
 
   // On OS X it's common to re-create a window in the app when the
