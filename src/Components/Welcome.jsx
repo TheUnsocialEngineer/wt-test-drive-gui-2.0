@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css"; // Assuming you have a custom CSS file for full-frame styling.
-//import MissionEditModal from "./MissionEdit.jsx"
+import MissionEditModal from "./MissionEdit.jsx"
 
 const countryNames = [
   "USA",
