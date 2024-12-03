@@ -1,7 +1,7 @@
 {
   "name": "warthunder-testdrive-gui",
   "productName": "warthunder-testdrive-gui",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Test Drive Vehicles",
   "main": ".webpack/main",
   "scripts": {

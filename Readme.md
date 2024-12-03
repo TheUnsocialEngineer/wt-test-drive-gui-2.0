@@ -14,7 +14,7 @@ I would suggest you watch [Ask3lad's video](https://www.youtube.com/watch?v=VbFS
 
 1. download the zip from this repository.
 2. install dependencies via `npm install`
-3. run using `npm run` or build a binary using `npm run make`
+3. run using `npm run` or build a binary using `npm run make` (i have only supplied windows binary so if ypu plan on running this on mac or linux i would suggest building your own)
 
 ---
 # Running binary
