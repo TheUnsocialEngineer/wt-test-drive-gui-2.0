@@ -3,8 +3,6 @@
 
 AGui for test driving any WarThunder vehicle based on [This video](https://www.youtube.com/watch?v=VbFSo0YqJE0)
 
-# WARNING RIGHT NOW I HAVE MESSED UP THE STEAM PATH CHECKS THIS MEANS YOU WILL NEED TO MANUALLY SET GAME TYPE TO STEAM AND SET "steam_install_path": "" TO YOUR INSTALL LOCATION IN CONFIG
-
 ## Usage/Examples
 
 I would suggest you watch [Ask3lad's video](https://www.youtube.com/watch?v=VbFSo0YqJE0) before running this as it may help with troubleshooting issues later on
