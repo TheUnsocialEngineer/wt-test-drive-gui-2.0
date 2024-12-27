@@ -24,6 +24,10 @@ On first startup the program checks if you have Wt installed with WT launcher if
 
 The program automatically loads your misisons from the usermissions folder in the warthunder directory, you just select the mission you want to edit, then click edit, select a vehicle and then load the mission in WarThunder
 
+# Mission detail edits
+
+when editing mission details certain things like the chapter can only have alphanumeric characters no spaces so something like Eoka test Drive should be EokaTestDrives, weather and environment options were pulled from the CDK so they should all work.
+
 
 ## Acknowledgements
 
@@ -41,4 +45,8 @@ The program automatically loads your misisons from the usermissions folder in th
 
 # App Vehicle selection modal
 [![](https://i.imgur.com/g5wr37Cm.jpg)](https://i.imgur.com/g5wr37C.png)
+
+# Mission details edit form
+
+[![](https://i.imgur.com/DW27wEK.png)](https://i.imgur.com/DW27wEK.png)
 
