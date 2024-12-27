@@ -13,5 +13,5 @@ contextBridge.exposeInMainWorld('electron', {
   getLastSelected: () => ipcRenderer.invoke("get_last_selected"),
   updateLastSelected: (selectedVehicleId) => ipcRenderer.invoke("update_last_selected", selectedVehicleId),
   fetchEnemies:(selectedMission) => ipcRenderer.invoke("fetch_enemies",selectedMission),
-  savemissiondetails:(updatedmissionDetails) => ipcRenderer.mission(update_mission_details,updatedmissionDetails)
+  savemissiondetails:(mission,updatedmissionDetails,missionfilePath) => ipcRenderer.invoke("update_mission_details",mission,updatedmissionDetails,missionfilePath)
 });

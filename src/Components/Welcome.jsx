@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css"; // Assuming you have a custom CSS file for full-frame styling.
-import MissionEditModal from "./MissionEdit.jsx"
 
 const countryNames = [
   "USA",
@@ -30,18 +29,38 @@ function Welcome() {
   const [enemies, setEnemies] = useState([]);
   const [missionDetails, setMissionDetails] = useState(null); // Store mission details
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setMissionDetails((prevDetails) => ({
+      ...prevDetails,
+      [name]: value,
+    }));
+  };
+
   const saveMissionChanges = async (updatedMissionDetails) => {
+    console.log("Updated mission details:", updatedMissionDetails);
+    if (!updatedMissionDetails) {
+      console.error("Mission details don't exist");
+      return;
+    } else {
+      console.log("Mission details exist");
+    }
     setMissionDetails(updatedMissionDetails); // Update state with new details
   
     try {
-      const response = await window.electron.save_mission_details(updatedMissionDetails);
+      if (updatedMissionDetails === undefined) {
+        console.error("Updated mission details are undefined");
+        return;
+      }
+      console.log("they still exist at this point",updatedMissionDetails);
+      const response = await window.electron.savemissiondetails(selectedMission,updatedMissionDetails,selectedMissionData.filePath);
       if (response.success) {
-        //console.log("Mission details saved successfully");
+        console.log("Mission details saved successfully");
       } else {
-        //console.error("Failed to save mission details:", response.message);
+        console.error("Failed to save mission details:", response.message);
       }
     } catch (error) {
-      //console.error("Error saving mission details:", error);
+      console.error("Error saving mission details:", error);
     }
   };
 
@@ -112,32 +131,33 @@ function Welcome() {
     const missionData = missions.find(
       (mission) => mission.missionData?.mission?.locName === selectedMissionName
     );
-  
+    console.log(missionData)
     if (missionData) {
       // Find the vehicle with the name "You"
       const playerVehicle = missionData.tankModels?.find(
-        (vehicle) => vehicle.name === "\"You\""
+        (vehicle) => vehicle.name === "\"You\"" || vehicle.name === "You"
       );
-  
+      console.log(playerVehicle)
       if (playerVehicle) {
         try {
           // Update the selected vehicle state
           setSelectedVehicle(playerVehicle);
-          //console.log(playerVehicle)
+          console.log(playerVehicle)
           setSelectedVehicleWeapons(playerVehicle.weapons);
 
           //set mission details state
 
-          setMissionDetails({
-            name: JSON.parse(missionData.missionData.mission.locName),
-            type: JSON.parse(missionData.missionData.mission.type),
-            level: JSON.parse(missionData.missionData.mission.level),
-            environment: JSON.parse(missionData.missionData.mission.environment),
-            weather: JSON.parse(missionData.missionData.mission.weather),
-            description: JSON.parse(missionData.missionData.mission.locDesc),
-            campaign: JSON.parse(missionData.missionData.mission.campaign),
-          });
-  
+            setMissionDetails({
+            locName: typeof missionData.missionData.mission.locName === 'string' ? missionData.missionData.mission.locName : JSON.parse(missionData.missionData.mission.locName),
+            type: typeof missionData.missionData.mission.type === 'string' ? missionData.missionData.mission.type : JSON.parse(missionData.missionData.mission.type),
+            level: typeof missionData.missionData.mission.level === 'string' ? missionData.missionData.mission.level : JSON.parse(missionData.missionData.mission.level),
+            chapter: typeof missionData.missionData.mission.chapter === 'string' ? missionData.missionData.mission.chapter : JSON.parse(missionData.missionData.mission.chapter),
+            environment: typeof missionData.missionData.mission.environment === 'string' ? missionData.missionData.mission.environment : JSON.parse(missionData.missionData.mission.environment),
+            weather: typeof missionData.missionData.mission.weather === 'string' ? missionData.missionData.mission.weather : JSON.parse(missionData.missionData.mission.weather),
+            locDesc: typeof missionData.missionData.mission.locDesc === 'string' ? missionData.missionData.mission.locDesc : JSON.parse(missionData.missionData.mission.locDesc),
+            campaign: typeof missionData.missionData.mission.campaign === 'string' ? missionData.missionData.mission.campaign : JSON.parse(missionData.missionData.mission.campaign),
+            });
+          console.log(environment,weather)
           // Update the `last_selected` in config.json
           const response = await window.electron.updateLastSelected(playerVehicle.weapons);
           const response2 = await window.electron.updateVehicleBlkPath((playerVehicle.weapons).replace("_default",""));
@@ -273,7 +293,9 @@ return (
           </option>
           {missions.map((mission, index) => (
             <option key={index} value={mission.missionData.mission.locName}>
-              {mission.missionData.mission.locName}
+              {typeof mission.missionData.mission.locName === 'string'
+                ? mission.missionData.mission.locName.replace('"', '').replace('"', '')
+                : JSON.parse(mission.missionData.mission.locName).replace('"', '')}
             </option>
           ))}
         </select>
@@ -285,7 +307,8 @@ return (
         <>
           <div className="text-white mb-4">
             <h1>Mission Manager</h1>
-            <h5>Mission: {JSON.parse(selectedMissionData.missionData.mission.locName)}</h5>
+            <h5>Mission: {typeof selectedMissionData.missionData.mission.locName === 'string' ? selectedMissionData.missionData.mission.locName : JSON.parse(selectedMissionData.missionData.mission.locName)}</h5>
+            <h5>Mission Path: {selectedMissionData.filePath}</h5>
           </div>
           <div className="row g-4">
             {/* Mission Details Cards */}
@@ -293,16 +316,16 @@ return (
               <div className="card bg-dark text-white h-100">
                 <div className="card-body">
                   <h6 className="card-title"></h6>
-                  <p><strong>Type:</strong> {JSON.parse(selectedMissionData.missionData.mission.type)}</p>
-                  <p><strong>Level:</strong> {JSON.parse(selectedMissionData.missionData.mission.level)}</p>
-                  <p><strong>Environment:</strong> {JSON.parse(selectedMissionData.missionData.mission.environment)}</p>
-                  <p><strong>Weather:</strong> {JSON.parse(selectedMissionData.missionData.mission.weather)}</p>
-                  <p><strong>Description:</strong> {JSON.parse(selectedMissionData.missionData.mission.locDesc)}</p>
-                  <p><strong>Campaign:</strong> {JSON.parse(selectedMissionData.missionData.mission.campaign)}</p>
+                  <p><strong>Type:</strong> {typeof selectedMissionData.missionData.mission.type === 'string' ? selectedMissionData.missionData.mission.type.replace('"', '').replace('"', '') : JSON.parse(selectedMissionData.missionData.mission.type.replace('"', '').replace('"', ''))}</p>
+                  <p><strong>Level:</strong> {typeof selectedMissionData.missionData.mission.level === 'string' ? selectedMissionData.missionData.mission.level : JSON.parse(selectedMissionData.missionData.mission.level)}</p>
+                  <p><strong>Environment:</strong> {typeof selectedMissionData.missionData.mission.environment === 'string' ? selectedMissionData.missionData.mission.environment : JSON.parse(selectedMissionData.missionData.mission.environment)}</p>
+                  <p><strong>Weather:</strong> {typeof selectedMissionData.missionData.mission.weather === 'string' ? selectedMissionData.missionData.mission.weather : JSON.parse(selectedMissionData.missionData.mission.weather)}</p>
+                  <p><strong>Description:</strong> {typeof selectedMissionData.missionData.mission.locDesc === 'string' ? selectedMissionData.missionData.mission.locDesc.replace('"', '').replace('"', '') : JSON.parse(selectedMissionData.missionData.mission.locDesc.replace('"', '').replace('"', ''))}</p>
+                  <p><strong>Campaign:</strong> {typeof selectedMissionData.missionData.mission.campaign === 'string' ? selectedMissionData.missionData.mission.campaign : JSON.parse(selectedMissionData.missionData.mission.campaign)}</p>
                 </div>
-                <div className="card-footer">
+                <div className="card-footer"> 
                 <div className="text-center">
-                  {/* <button className="btn btn-outline-secondary btn-lg px-4" onClick={openEditModal}>  Edit Mission</button>*/}
+                   <button className="btn btn-outline-secondary btn-lg px-4" onClick={openEditModal}>  Edit Mission</button>
                   </div>
                   </div>
               </div>
@@ -346,12 +369,12 @@ return (
                         {/* Card for each enemy */}
                         <div className="card">
                           <div className="card-body">
-                            <h5 className="card-title">{JSON.parse(enemy.name)}</h5>
+                          <h5 className="card-title">{typeof enemy.name === 'string' ? enemy.name : JSON.parse(enemy.name)}</h5>
                             <p className="card-text">
-                              <strong>Class:</strong> {JSON.parse(enemy.unit_class)}
+                              <strong>Class:</strong> {typeof enemy.unit_class === 'string' ? enemy.unit_class : JSON.parse(enemy.unit_class)}
                             </p>
                             <p className="card-text">
-                              <strong>Weapons:</strong> {JSON.parse(enemy.weapons)}
+                              <strong>Weapons:</strong> {typeof enemy.weapons === 'string' ? enemy.weapons : JSON.parse(enemy.weapons)}
                             </p>
                           </div>
                         </div>
@@ -364,17 +387,6 @@ return (
               </div>
             </div>
           </div>
-
-          <div className="container">
-
-          <MissionEditModal
-            show={isEditModalOpen}
-            onClose={closeEditModal}
-            missionDetails={missionDetails}
-            onSave={saveMissionChanges}
-            //handleInputChange={handleInputChange}
-          />
-        </div>
         </>
       )}
     </div>
@@ -392,6 +404,163 @@ return (
     <footer className="bg-dark text-white text-center py-3">
       <p className="mb-0">&copy; 2024 War Thunder Test Driver. All rights reserved.</p>
     </footer>
+
+
+    <div>
+
+      {isEditModalOpen && (
+        <div
+          className="modal fade show"
+          style={{ display: "block" }}
+          aria-hidden="false"
+        >
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Mission Details</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={closeEditModal}
+                  aria-label="Close"
+                >
+                  X
+                </button>
+              </div>
+              <div className="modal-body">
+                <form>
+                  <div className="mb-3">
+                    <label htmlFor="missionName" className="form-label">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="missionName"
+                      name="name"
+                      placeholder={missionDetails.locName || "Enter mission name"}
+                      defaultValue={missionDetails.locName}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="missionEnvironment" className="form-label">
+                      Environment
+                    </label>
+                    <select
+                      className="form-select"
+                      id="missionEnvironment"
+                      name="Environment"
+                      onChange={handleInputChange}
+                    >
+                      <option value="just not needed here">{selectedMissionData.missionData.mission.environment}</option>
+                      <option value="Day">Day</option>
+                      <option value="noon">Noon</option>
+                      <option value="morning">Morning</option>
+                      <option value="evening">Evening</option>
+                      <option value="night">Night</option>
+                      <option value="dusk">Dusk</option>
+                      <option value="dawn">Dawn</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="missionWeather" className="form-label">
+                      Weather
+                    </label>
+                    <select
+                      type="text"
+                      className="form-control"
+                      id="missionWeathert"
+                      name="Weather"
+                      onChange={handleInputChange}>
+                        <option value="just not needed here">{selectedMissionData.missionData.mission.weather}</option>
+                        <option value="clear">clear</option>
+                        <option value="good">good</option>
+                        <option value="hazy">hazy</option>
+                        <option value="cloudy">cloudy</option>
+                        <option value="cloudy_windy">cloudy_windy</option>
+                        <option value="thin_clouds">thin_clouds</option>
+                        <option value="thin_clouds_storm">thin_clouds_storm</option>
+                        <option value="poor">poor</option>
+                        <option value="mist">mist</option>
+                        <option value="overcast">overcast</option>
+                        <option value="blind">blind</option>
+                        <option value="rain">rain</option>
+                        <option value="storm">storm</option>
+                        <option value="thunder">thunder</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="missionDescription" className="form-label">
+                      Description
+                    </label>
+                    <textarea
+                      className="form-control"
+                      id="missionDescription"
+                      name="description"
+                      rows="3"
+                      placeholder={
+                        missionDetails.locDesc || "Enter description"
+                      }
+                      defaultValue={typeof missionDetails.locDesc === 'string' ? missionDetails.locDesc.replace('"', '').replace('"', '') : JSON.parse(missionDetails.locDesc.replace('"', '').replace('"', ''))}
+                      onChange={handleInputChange}
+                    ></textarea>
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="missionCampaign" className="form-label">
+                      Campaign
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="missionCampaign"
+                      name="campaign"
+                      placeholder={missionDetails.campaign || "Enter campaign"}
+                      defaultValue={missionDetails.campaign}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="missionCampaign" className="form-label">
+                    Chapter
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="missionChapter"
+                      name="chapter"
+                      placeholder={missionDetails.chapter || "Enter campaign"}
+                      defaultValue={missionDetails.chapter}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </form>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={closeEditModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    saveMissionChanges(missionDetails);
+                    closeEditModal();
+                    }}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    
 
     {/* Modal for Vehicle Selector */}
     {isModalOpen && (

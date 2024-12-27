@@ -10,6 +10,7 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
+      setupIcon: 'images/icon.ico',
       config: {},
     },
     {
@@ -20,7 +21,7 @@ module.exports = {
       name: '@electron-forge/maker-deb',
       config: {
         options: {
-          icon: './images/image.png'
+          icon: 'images/icon.png'
         }
       },
     },
