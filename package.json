@@ -61,17 +61,17 @@
     "appId": "Eoka.WarThunder.TestDrve.GUI",
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "./images/image.icns"
+      "icon": "images/image.icns"
     },
     "win": {
       "target": [
         "nsis"
       ],
-      "icon": "./images/icon.ico"
+      "icon": "images/icon.ico"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "./images/icon.png"
+      "icon": "images/icon.png"
     },
     "files": [
       "dist/**/*",
